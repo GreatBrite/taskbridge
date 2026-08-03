@@ -1,6 +1,6 @@
-# TaskBridge Mini App
+# DeloLynk Mini App
 
-TaskBridge is a Telegram Mini App MVP for matching customers with contractors for simple local work: moving help, handyman tasks, childcare, dog walking, and cleaning.
+DeloLynk is a Telegram Mini App MVP for matching customers with contractors for simple local work: moving help, handyman tasks, childcare, dog walking, and cleaning.
 
 ## What is implemented
 

@@ -80,6 +80,10 @@ p { color: var(--muted); line-height: 1.45; }
   color: #fff;
   background: linear-gradient(135deg, var(--blue), #32b8ff);
 }
+.brand-mark svg {
+  width: 30px;
+  height: 30px;
+}
 .language-pill {
   margin-top: 9px;
   min-height: 34px;

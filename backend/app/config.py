@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "TaskBridge"
+    app_name: str = "DeloLynk"
     environment: str = "development"
     database_url: str = "sqlite:///./taskbridge.db"
     redis_url: str = "redis://redis:6379/0"

@@ -26,7 +26,7 @@ def mini_app_keyboard(start_param: str = "") -> InlineKeyboardMarkup:
         url = f"{url}{separator}startapp={start_param}"
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Открыть TaskBridge", web_app=WebAppInfo(url=url))],
+            [InlineKeyboardButton(text="Открыть DeloLynk", web_app=WebAppInfo(url=url))],
         ]
     )
 
@@ -34,7 +34,7 @@ def mini_app_keyboard(start_param: str = "") -> InlineKeyboardMarkup:
 @dispatcher.message(CommandStart())
 async def start(message: Message) -> None:
     await message.answer(
-        "TaskBridge помогает найти исполнителя для бытовой задачи и общаться без языкового барьера.",
+        "DeloLynk помогает найти исполнителя для бытовой задачи и общаться без языкового барьера.",
         reply_markup=mini_app_keyboard(),
     )
 

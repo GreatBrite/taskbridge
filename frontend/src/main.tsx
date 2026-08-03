@@ -1,9 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Baby, BriefcaseBusiness, Camera, Check, ClipboardCheck, Clock, Dog, Home, Languages, MapPin, MessageCircle, Paperclip, Plus, Search, Send, ShieldCheck, SlidersHorizontal, Sparkles, Star, Truck, UserRoundCog, Wrench } from 'lucide-react';
+import { Baby, Camera, Check, ClipboardCheck, Clock, Dog, Home, Languages, MapPin, MessageCircle, Paperclip, Plus, Search, Send, ShieldCheck, SlidersHorizontal, Sparkles, Star, Truck, UserRoundCog, Wrench } from 'lucide-react';
 import { api } from './api';
 import type { Chat, Job, Message, Offer, Role, User } from './types';
 import './styles.css';
+
+const APP_NAME = 'DeloLynk';
+const APP_TITLE = `${APP_NAME} Mini App`;
+
+function DeloLynkMark() {
+  return (
+    <svg viewBox="0 0 36 36" role="img" aria-label="DeloLynk">
+      <rect x="5" y="7" width="14" height="14" rx="5" fill="currentColor" opacity=".95" />
+      <rect x="17" y="15" width="14" height="14" rx="5" fill="currentColor" opacity=".72" />
+      <path d="M14 18.5h8c2.1 0 3.8-1.7 3.8-3.8S24.1 11 22 11h-2.2" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M22 17.5h-8c-2.1 0-3.8 1.7-3.8 3.8S11.9 25 14 25h2.2" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M11.4 13.8h3.8M20.8 24h4" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 const categories = [
   { id: 'moving', label: 'Переезд', icon: Truck },
@@ -388,10 +403,10 @@ function App() {
 
   return (
     <div className="stage">
-      <div className="phone" role="application" aria-label="TaskBridge Mini App">
+      <div className="phone" role="application" aria-label={APP_TITLE}>
         <header className="app-header">
           <div className="bar">
-            <div className="brand"><span className="brand-mark"><BriefcaseBusiness size={20} /></span><span>TaskBridge</span></div>
+            <div className="brand"><span className="brand-mark"><DeloLynkMark /></span><span>{APP_NAME}</span></div>
             <button className="icon-btn" type="button" aria-label="Профиль" onClick={() => setScreen('profile')}><UserRoundCog /></button>
           </div>
           <button className="language-pill" type="button" onClick={() => setScreen('profile')}>

@@ -1,1 +1,1 @@
-"""TaskBridge backend package."""
+"""DeloLynk backend package."""

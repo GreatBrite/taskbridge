@@ -18,8 +18,8 @@ const apiBase = import.meta.env.VITE_API_BASE || '/api';
 export function authHeader(): string {
   const initData = window.Telegram?.WebApp?.initData;
   if (initData) return `tma ${initData}`;
-  const devId = localStorage.getItem('taskbridge-dev-id') || '1001';
-  localStorage.setItem('taskbridge-dev-id', devId);
+  const devId = localStorage.getItem('delolynk-dev-id') || '1001';
+  localStorage.setItem('delolynk-dev-id', devId);
   return `dev ${devId}`;
 }
 
@@ -40,7 +40,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  auth: () => request<User>('/auth/telegram', { method: 'POST', body: JSON.stringify({ dev_telegram_id: Number(localStorage.getItem('taskbridge-dev-id') || 1001) }) }),
+  auth: () => request<User>('/auth/telegram', { method: 'POST', body: JSON.stringify({ dev_telegram_id: Number(localStorage.getItem('delolynk-dev-id') || 1001) }) }),
   me: () => request<User>('/me'),
   patchMe: (body: Partial<User>) => request<User>('/me', { method: 'PATCH', body: JSON.stringify(body) }),
   createDraft: (body: { category: string; description: string; city?: string; district: string; time_window: string; budget: string }) =>

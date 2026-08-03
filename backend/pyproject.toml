@@ -1,7 +1,7 @@
 [project]
-name = "taskbridge-backend"
+name = "delolynk-backend"
 version = "0.1.0"
-description = "TaskBridge Telegram Mini App backend"
+description = "DeloLynk Telegram Mini App backend"
 requires-python = ">=3.12"
 dependencies = [
   "aiogram>=3.10,<4",
