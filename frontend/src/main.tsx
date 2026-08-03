@@ -1,16 +1,78 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BriefcaseBusiness, Check, ClipboardCheck, Home, Languages, MessageCircle, Plus, Send, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
+import { Baby, BriefcaseBusiness, Camera, Check, ClipboardCheck, Clock, Dog, Home, Languages, MapPin, MessageCircle, Paperclip, Plus, Search, Send, ShieldCheck, SlidersHorizontal, Sparkles, Truck, UserRoundCog, Wrench } from 'lucide-react';
 import { api } from './api';
 import type { Chat, Job, Message, Offer, Role, User } from './types';
 import './styles.css';
 
 const categories = [
-  { id: 'moving', label: 'Переезд' },
-  { id: 'handyman', label: 'Мастер' },
-  { id: 'childcare', label: 'Няня' },
-  { id: 'dogwalk', label: 'Собаки' },
-  { id: 'cleaning', label: 'Уборка' },
+  { id: 'moving', label: 'Переезд', icon: Truck },
+  { id: 'handyman', label: 'Мастер', icon: Wrench },
+  { id: 'childcare', label: 'Няня', icon: Baby },
+  { id: 'dogwalk', label: 'Собаки', icon: Dog },
+  { id: 'cleaning', label: 'Уборка', icon: Sparkles },
+];
+
+const categoryImages: Record<string, string> = {
+  moving: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=360&q=78',
+  handyman: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=360&q=78',
+  childcare: 'https://images.unsplash.com/photo-1544776193-352d25ca82cd?auto=format&fit=crop&w=360&q=78',
+  dogwalk: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=360&q=78',
+  cleaning: 'https://images.unsplash.com/photo-1585421514284-efb74c2b69ba?auto=format&fit=crop&w=360&q=78',
+};
+
+const demoJobs: Job[] = [
+  {
+    id: -1,
+    customer_id: 0,
+    category: 'moving',
+    title: 'Переезд: коробки и стол',
+    description: '8 коробок и небольшой стол, есть лифт, нужна машина и помощь с погрузкой.',
+    city: 'Tbilisi',
+    district: 'Сабуртало',
+    time_window: 'завтра 14:00-17:00',
+    budget: 'до 120 GEL',
+    currency: 'GEL',
+    status: 'published',
+    structured_brief: {},
+    missing_fields: [],
+    selected_offer_id: null,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: -2,
+    customer_id: 0,
+    category: 'handyman',
+    title: 'Полка + дверца шкафа',
+    description: 'Повесить одну полку, подтянуть дверцу, мастер со своей дрелью.',
+    city: 'Tbilisi',
+    district: 'Ваке',
+    time_window: 'сегодня вечером',
+    budget: '80-100 GEL',
+    currency: 'GEL',
+    status: 'published',
+    structured_brief: {},
+    missing_fields: [],
+    selected_offer_id: null,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: -3,
+    customer_id: 0,
+    category: 'dogwalk',
+    title: 'Выгул собаки 40 минут',
+    description: 'Спокойная собака, маршрут рядом с домом, нужен отчёт фото.',
+    city: 'Tbilisi',
+    district: 'Чугурети',
+    time_window: 'будни утром',
+    budget: '25 GEL',
+    currency: 'GEL',
+    status: 'published',
+    structured_brief: {},
+    missing_fields: [],
+    selected_offer_id: null,
+    created_at: new Date().toISOString(),
+  },
 ];
 
 type Screen = 'feed' | 'request' | 'offers' | 'chatList' | 'chat' | 'profile';
@@ -88,7 +150,15 @@ function App() {
             <div className="brand"><span className="brand-mark"><BriefcaseBusiness size={20} /></span><span>TaskBridge</span></div>
             <button className="icon-btn" type="button" aria-label="Профиль" onClick={() => setScreen('profile')}><UserRoundCog /></button>
           </div>
-          {screen === 'feed' && <div className="search-box">переезд, мастер, няня</div>}
+          {screen === 'feed' && (
+            <div className="search-box">
+              <Search size={21} />
+              <span>переезд, мастер, няня</span>
+              <button className="filter-chip" type="button" onClick={() => flash('Фильтры: район, цена, язык, рейтинг')}>
+                <SlidersHorizontal size={18} />Фильтр
+              </button>
+            </div>
+          )}
         </header>
 
         <main className="screen">
@@ -114,17 +184,42 @@ function App() {
 }
 
 function Feed({ heading, jobs, isContractor, onJob, onCreate }: { heading: string; jobs: Job[]; isContractor: boolean; onJob: (job: Job) => void; onCreate: () => void }) {
+  const visibleJobs = jobs.length ? jobs : demoJobs;
   return (
     <>
       <div className="section-title"><div><h1>{heading}</h1><p>Заявка уходит исполнителям на их языке</p></div></div>
-      <div className="stories">{categories.map((item) => <span className="category" key={item.id}>{item.label}</span>)}</div>
-      <article className="trust-strip"><div><h2>Без звонков до выбора</h2><p>Цена, срок, рейтинг, язык и уточнения сразу в отклике.</p></div><strong>4.8</strong></article>
-      <div className="section-title"><h2>{isContractor ? 'Подходящие работы' : 'Мои и свежие заявки'}</h2></div>
+      <div className="stories">{categories.map((item, index) => {
+        const Icon = item.icon;
+        return <button className={index === 0 ? 'category active' : 'category'} type="button" key={item.id}><span className="category-icon"><Icon size={20} /></span><span>{item.label}</span></button>;
+      })}</div>
+      <article className="trust-strip"><div><h2>Без звонков до выбора</h2><p>Цена, срок, рейтинг, язык и уточнения сразу в отклике.</p></div><div className="trust-kpi"><strong>4.8</strong><small>средний рейтинг</small></div></article>
+      <div className="filter-row">
+        <span className="chip"><MapPin size={15} />рядом</span>
+        <span className="chip"><Languages size={15} />auto RU</span>
+        <span className="chip"><Clock size={15} />срочные</span>
+      </div>
+      <div className="section-title"><h2>{isContractor ? 'Подходящие работы' : 'Мои и свежие заявки'}</h2><button className="chip" type="button">Сначала срочные</button></div>
       <div className="cards">
-        {jobs.map((job) => <button className="job-card" type="button" key={job.id} onClick={() => onJob(job)}><span><span className="badge">{job.status}</span><h3>{job.title || job.description}</h3><p>{job.district || job.city} · {job.time_window || 'время уточняется'}</p><p>{job.description}</p></span><strong>{job.budget || 'цена?'}</strong></button>)}
-        {!jobs.length && <Empty title="Пока заявок нет" action="Создать заявку" onClick={onCreate} />}
+        {visibleJobs.map((job) => <JobCard job={job} key={job.id} onClick={() => (job.id > 0 ? onJob(job) : onCreate())} />)}
       </div>
     </>
+  );
+}
+
+function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
+  return (
+    <button className="job-card" type="button" onClick={onClick}>
+      <span className="job-art"><img src={categoryImages[job.category] || categoryImages.moving} alt="" loading="lazy" /></span>
+      <span className="job-main">
+        <span className="job-top">
+          <span><span className="badge">{job.status === 'published' ? 'срочно' : job.status}</span><h3>{job.title || job.description}</h3></span>
+          <span className="price">{job.budget || 'цена?'}</span>
+        </span>
+        <span className="meta"><span>{job.district || job.city}</span><span>{job.time_window || 'время уточняется'}</span></span>
+        <span className="offer-text">{job.description}</span>
+        <span className="mini-actions"><span className="chip"><MessageCircle size={15} />отклики</span><span className="chip"><Languages size={15} />auto RU</span></span>
+      </span>
+    </button>
   );
 }
 
@@ -135,6 +230,7 @@ function RequestScreen({ onCreated }: { onCreated: (job: Job) => void }) {
   const [timeWindow, setTimeWindow] = useState('Завтра после 14:00');
   const [budget, setBudget] = useState('до 120 GEL');
   const [brief, setBrief] = useState<{ score: number; questions: string[] } | null>(null);
+  const [attachments, setAttachments] = useState<string[]>(['фото подъезда.jpg']);
 
   async function create(improveOnly: boolean) {
     const job = await api.createDraft({ category, description, district, time_window: timeWindow, budget });
@@ -151,6 +247,15 @@ function RequestScreen({ onCreated }: { onCreated: (job: Job) => void }) {
       <input value={district} onChange={(event) => setDistrict(event.target.value)} placeholder="Район" />
       <input value={timeWindow} onChange={(event) => setTimeWindow(event.target.value)} placeholder="Когда" />
       <input value={budget} onChange={(event) => setBudget(event.target.value)} placeholder="Бюджет" />
+      <div className="attach-box">
+        <div><strong>Фото и детали</strong><p>Можно приложить фото входа, мебели, инструмента или места работы.</p></div>
+        <label className="btn small" htmlFor="attachments"><Camera size={17} />Прикрепить</label>
+        <input id="attachments" className="visually-hidden" type="file" multiple accept="image/*" onChange={(event) => {
+          const files = Array.from(event.target.files || []).map((file) => file.name);
+          if (files.length) setAttachments(files);
+        }} />
+      </div>
+      <div className="attachment-list">{attachments.map((name) => <span className="chip" key={name}><Paperclip size={15} />{name}</span>)}</div>
       {brief && <div className="brief"><strong>ТЗ {brief.score}%</strong>{brief.questions.map((question) => <p key={question}>{question}</p>)}</div>}
       <button className="btn dark full" type="button" onClick={() => create(true)}><Sparkles />Уточнить ТЗ</button>
       <button className="btn primary full" type="button" onClick={() => create(false)}><Send />Опубликовать заявку</button>
