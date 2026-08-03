@@ -1,0 +1,1263 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TaskBridge mobile mini-app</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <script src="https://unpkg.com/lucide@1.28.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f5f8;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --ink: #111827;
+      --muted: #667085;
+      --line: #d8dee8;
+      --blue: #1f5cff;
+      --blue-2: #e8f0ff;
+      --green: #08a66a;
+      --orange: #ff7a00;
+      --yellow: #ffd43b;
+      --red: #dc2626;
+      --radius: 18px;
+      --shadow: 0 18px 48px rgba(16, 24, 40, .14);
+      --tabbar: 78px;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #dfe5ed; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(31, 92, 255, .16), transparent 28%),
+        linear-gradient(140deg, #eef2f7, #dbe3ef);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button {
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(31, 92, 255, .25);
+      outline-offset: 2px;
+    }
+
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow-x: hidden;
+    }
+
+    .phone {
+      width: min(100%, 430px);
+      max-width: 100%;
+      min-width: 0;
+      min-height: min(920px, calc(100dvh - 36px));
+      max-height: 920px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      background: var(--bg);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .phone > *,
+    main {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    main {
+      overflow: hidden;
+    }
+
+    .status {
+      height: 28px;
+      padding: 8px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #1f2937;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .app-header {
+      padding: 8px 16px 12px;
+      background: rgba(243, 245, 248, .96);
+      border-bottom: 1px solid rgba(216, 222, 232, .7);
+      backdrop-filter: blur(14px);
+      z-index: 3;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .bar {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      font-weight: 900;
+      font-size: 19px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--blue), #32b8ff);
+      color: #fff;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      border: 0;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: 0 1px 0 rgba(16, 24, 40, .06);
+    }
+
+    .search-box {
+      min-height: 48px;
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--surface);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .search-box input {
+      min-width: 0;
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .filter-chip, .chip {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      color: #172033;
+      background: var(--surface-2);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .screen {
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 14px calc(var(--tabbar) + 18px);
+      scroll-behavior: smooth;
+    }
+
+    .screen.hidden { display: none; }
+
+    .section-title {
+      margin: 4px 2px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 24px; line-height: 1.12; letter-spacing: 0; }
+    h2 { font-size: 18px; line-height: 1.2; letter-spacing: 0; }
+    h3 { font-size: 16px; line-height: 1.25; letter-spacing: 0; }
+    p { color: var(--muted); line-height: 1.45; }
+
+    .stories {
+      margin: 2px -14px 14px;
+      padding: 0 14px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      max-width: calc(100% + 28px);
+      scrollbar-width: none;
+    }
+    .stories::-webkit-scrollbar { display: none; }
+
+    .category {
+      width: 94px;
+      min-width: 94px;
+      border: 0;
+      border-radius: 18px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      background: var(--surface);
+      text-align: left;
+    }
+
+    .category.active {
+      background: #101828;
+      color: #fff;
+    }
+
+    .category-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--blue-2);
+      color: var(--blue);
+    }
+    .category.active .category-icon { background: rgba(255,255,255,.14); color: #fff; }
+    .category span { font-size: 12px; font-weight: 800; line-height: 1.15; }
+
+    .trust-strip {
+      margin-bottom: 14px;
+      border-radius: 22px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #101828, #253858);
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    .trust-strip::after {
+      content: "";
+      width: 112px;
+      height: 112px;
+      border-radius: 999px;
+      position: absolute;
+      right: -34px;
+      top: -40px;
+      background: rgba(255, 212, 59, .32);
+    }
+    .trust-strip p { color: rgba(255,255,255,.74); font-size: 13px; }
+    .trust-kpi { display: grid; gap: 2px; text-align: right; z-index: 1; }
+    .trust-kpi strong { font-size: 21px; }
+    .trust-kpi small { color: rgba(255,255,255,.76); font-weight: 800; }
+
+    .cards { display: grid; gap: 12px; }
+
+    .job-card, .offer-card, .panel, .chat-item {
+      border: 1px solid rgba(216, 222, 232, .82);
+      border-radius: 22px;
+      background: var(--surface);
+      box-shadow: 0 1px 0 rgba(16, 24, 40, .03);
+    }
+
+    .job-card {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 86px minmax(0, 1fr);
+      gap: 10px;
+      text-align: left;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .job-art {
+      min-height: 112px;
+      border-radius: 17px;
+      overflow: hidden;
+      position: relative;
+      background: #dbe4f0;
+    }
+    .job-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .badge {
+      min-height: 24px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #111827;
+      background: var(--yellow);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .job-main {
+      min-width: 0;
+      display: grid;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .job-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      min-width: 0;
+    }
+    .job-top > span:first-child { min-width: 0; }
+    .job-card h3 {
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .price {
+      color: var(--blue);
+      font-size: 16px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .btn {
+      min-height: 48px;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--ink);
+      background: var(--surface-2);
+      font-weight: 900;
+      transition: transform .18s ease, background .18s ease, opacity .18s ease;
+    }
+    .btn:active, .icon-btn:active, .category:active, .job-card:active, .offer-card:active { transform: scale(.985); }
+    .btn.primary { color: #fff; background: var(--blue); }
+    .btn.dark { color: #fff; background: #101828; }
+    .btn.green { color: #fff; background: var(--green); }
+    .btn.full { width: 100%; }
+    .btn.small { min-height: 40px; border-radius: 14px; padding: 9px 12px; font-size: 13px; }
+
+    .fab {
+      position: absolute;
+      right: 16px;
+      bottom: calc(var(--tabbar) + 14px);
+      z-index: 4;
+      min-height: 50px;
+      border-radius: 999px;
+      padding: 0 16px;
+      box-shadow: 0 14px 32px rgba(31, 92, 255, .32);
+    }
+
+    .tabbar {
+      min-height: var(--tabbar);
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: rgba(255,255,255,.94);
+      border-top: 1px solid rgba(216, 222, 232, .8);
+      backdrop-filter: blur(18px);
+      z-index: 5;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .tab {
+      min-height: 58px;
+      border: 0;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 900;
+      position: relative;
+    }
+    .tab.active {
+      color: var(--blue);
+      background: var(--blue-2);
+    }
+    .dot {
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      position: absolute;
+      top: 7px;
+      right: 17px;
+      color: #fff;
+      background: var(--red);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .form-grid { display: grid; gap: 12px; }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    input, textarea, select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 13px;
+      color: var(--ink);
+      background: #fff;
+      outline: 0;
+      font-size: 16px;
+    }
+    textarea { min-height: 122px; resize: vertical; line-height: 1.4; }
+    .panel { padding: 14px; }
+    .panel-head {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e4e9f1;
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--orange), var(--green));
+    }
+    .brief {
+      padding: 12px;
+      border-radius: 18px;
+      color: #253047;
+      background: #eef6ff;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .role-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 18px;
+      background: #e6ebf2;
+    }
+    .role-toggle button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .role-toggle button.active {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 1px 0 rgba(16,24,40,.04);
+    }
+
+    .offer-card {
+      padding: 13px;
+      display: grid;
+      gap: 11px;
+    }
+    .offer-card.chosen {
+      border-color: rgba(8, 166, 106, .55);
+      background: #f3fff9;
+    }
+    .person {
+      display: grid;
+      grid-template-columns: 46px 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, #1f5cff, #32b8ff);
+      font-weight: 950;
+    }
+    .rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #694600;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .offer-text {
+      color: #344054;
+      font-size: 14px;
+      line-height: 1.45;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-list { display: grid; gap: 10px; }
+    .chat-item {
+      min-height: 74px;
+      padding: 11px;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      text-align: left;
+    }
+    .chat-item small { color: var(--muted); font-weight: 800; }
+    .unread {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .chat-room {
+      display: grid;
+      min-height: 100%;
+      grid-template-rows: auto 1fr auto;
+      margin: -14px;
+      padding-bottom: calc(var(--tabbar) + 14px);
+    }
+    .chat-head {
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .messages {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: end;
+    }
+    .msg {
+      max-width: 82%;
+      padding: 10px 12px;
+      border-radius: 18px 18px 18px 6px;
+      background: #fff;
+      line-height: 1.35;
+      box-shadow: 0 1px 0 rgba(16,24,40,.04);
+    }
+    .msg.me {
+      justify-self: end;
+      color: #fff;
+      background: var(--blue);
+      border-radius: 18px 18px 6px 18px;
+    }
+    .translated {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(102,112,133,.24);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .msg.me .translated { color: rgba(255,255,255,.78); border-color: rgba(255,255,255,.24); }
+    .composer {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 48px;
+      gap: 8px;
+      background: rgba(255,255,255,.95);
+      border-top: 1px solid var(--line);
+      position: sticky;
+      bottom: 0;
+    }
+
+    .wizard-steps {
+      display: grid;
+      gap: 10px;
+    }
+    .step {
+      padding: 12px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--green);
+      font-weight: 950;
+      font-size: 13px;
+    }
+
+    .sheet {
+      position: absolute;
+      inset: auto 10px calc(var(--tabbar) + 10px) 10px;
+      z-index: 8;
+      padding: 14px;
+      border-radius: 26px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      transform: translateY(calc(100% + var(--tabbar) + 40px));
+      transition: transform .24s ease;
+      pointer-events: none;
+    }
+    .sheet.open {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      background: rgba(15, 23, 42, .46);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: calc(var(--tabbar) + 18px);
+      z-index: 10;
+      min-height: 46px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      background: #101828;
+      font-weight: 850;
+      box-shadow: var(--shadow);
+    }
+    .toast.show { display: flex; }
+
+    .desktop-note {
+      max-width: 360px;
+      margin-left: 28px;
+      color: #334155;
+      display: none;
+    }
+    .desktop-note strong { display: block; margin-bottom: 10px; font-size: 22px; color: #172033; }
+
+    @media (min-width: 900px) {
+      .stage { grid-template-columns: auto auto; gap: 28px; }
+      .desktop-note { display: block; }
+    }
+
+    @media (max-width: 560px) {
+      .stage { padding: 0; display: block; }
+      .phone {
+        width: 100%;
+        min-height: 100dvh;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+      }
+      .status { padding-top: max(8px, env(safe-area-inset-top)); }
+      .fab { right: 14px; }
+    }
+
+    @media (max-width: 380px) {
+      .app-header { padding-left: 12px; padding-right: 12px; }
+      .screen { padding-left: 10px; padding-right: 10px; }
+      .stories { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }
+      .job-card {
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 8px;
+        padding: 10px;
+      }
+      .job-art { min-height: 104px; border-radius: 15px; }
+      .job-card h3 { font-size: 15px; }
+      .offer-text { font-size: 13px; }
+      .price { font-size: 15px; }
+      .chip { padding-left: 10px; padding-right: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="phone" role="application" aria-label="TaskBridge mobile prototype">
+      <div class="status" aria-hidden="true">
+        <span>20:42</span>
+        <span>5G 86%</span>
+      </div>
+
+      <header class="app-header">
+        <div class="bar">
+          <div class="brand"><span class="brand-mark"><i data-lucide="handshake"></i></span><span>TaskBridge</span></div>
+          <button class="icon-btn" id="roleButton" type="button" aria-label="Переключить роль"><i data-lucide="user-round-cog"></i></button>
+        </div>
+        <div class="search-box" id="searchShell">
+          <i data-lucide="search"></i>
+          <input id="searchInput" aria-label="Поиск услуг" value="переезд, мастер, няня" />
+          <button class="filter-chip" type="button" id="filterButton"><i data-lucide="sliders-horizontal"></i>Фильтр</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="screen" id="feedScreen" aria-labelledby="feedTitle">
+          <div class="section-title">
+            <div>
+              <h1 id="feedTitle">Что нужно сделать?</h1>
+              <p>Заявка уходит исполнителям на их языке</p>
+            </div>
+          </div>
+
+          <div class="stories" id="categories"></div>
+
+          <article class="trust-strip">
+            <div>
+              <h2>Без звонков до выбора</h2>
+              <p>Цена, срок, рейтинг, язык и уточнения сразу в отклике.</p>
+            </div>
+            <div class="trust-kpi"><strong>4.8</strong><small>средний рейтинг</small></div>
+          </article>
+
+          <div class="section-title">
+            <h2 id="jobsHeading">Свежие заявки рядом</h2>
+            <button class="chip" type="button" id="sortButton"><i data-lucide="arrow-down-up"></i>Сначала срочные</button>
+          </div>
+          <div class="cards" id="jobCards"></div>
+        </section>
+
+        <section class="screen hidden" id="requestScreen" aria-labelledby="requestTitle">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h1 id="requestTitle">Новая заявка</h1>
+                <p>Соберём понятное ТЗ за минуту</p>
+              </div>
+              <span class="badge" id="briefScore">ТЗ 72%</span>
+            </div>
+            <div class="form-grid">
+              <div class="role-toggle" aria-label="Роль">
+                <button id="customerRole" class="active" type="button">Заказчик</button>
+                <button id="contractorRole" type="button">Исполнитель</button>
+              </div>
+              <label>Категория
+                <select id="jobCategory">
+                  <option value="moving">Помощь с переездом</option>
+                  <option value="handyman">Муж на час</option>
+                  <option value="childcare">Няня</option>
+                  <option value="dogwalk">Выгул собак</option>
+                </select>
+              </label>
+              <label>Что нужно
+                <textarea id="jobText">Нужно перевезти 8 коробок и небольшой стол в соседний район. Лифт есть, нужна машина и помощь с погрузкой.</textarea>
+              </label>
+              <label>Район
+                <input id="jobLocation" value="Сабуртало" autocomplete="street-address" />
+              </label>
+              <label>Когда
+                <input id="jobTime" value="Завтра после 14:00" />
+              </label>
+              <label>Бюджет
+                <input id="jobBudget" inputmode="numeric" value="до 120 GEL" />
+              </label>
+              <div class="progress" aria-label="Полнота технического задания"><span id="progressBar" style="width:72%"></span></div>
+              <div class="brief" id="briefText"></div>
+              <button class="btn dark full" id="improveButton" type="button"><i data-lucide="wand-sparkles"></i>Уточнить через ТЗ-помощник</button>
+              <button class="btn primary full" id="publishButton" type="button"><i data-lucide="send"></i>Опубликовать заявку</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen hidden" id="offersScreen" aria-labelledby="offersTitle">
+          <div class="section-title">
+            <div>
+              <h1 id="offersTitle">Отклики</h1>
+              <p id="offerSubtitle">3 исполнителя готовы взяться</p>
+            </div>
+            <button class="icon-btn" type="button" id="addOfferButton" aria-label="Добавить демо-отклик"><i data-lucide="plus"></i></button>
+          </div>
+          <div class="cards" id="offerCards"></div>
+        </section>
+
+        <section class="screen hidden" id="chatScreen" aria-labelledby="chatTitle">
+          <div class="chat-room">
+            <div class="chat-head">
+              <button class="icon-btn" type="button" id="chatBackButton" aria-label="Назад к списку чатов"><i data-lucide="chevron-left"></i></button>
+              <div>
+                <h2 id="chatTitle">Giorgi</h2>
+                <p>KA ⇄ RU · автоперевод включён</p>
+              </div>
+              <button class="icon-btn" type="button" id="translateButton" aria-label="Включить или выключить перевод"><i data-lucide="languages"></i></button>
+            </div>
+            <div class="messages" id="messages"></div>
+            <div class="composer">
+              <input id="messageInput" aria-label="Сообщение" value="Можете приехать к 15:00 и взять ремни для стола?" />
+              <button class="btn primary" id="sendMessage" type="button" aria-label="Отправить сообщение"><i data-lucide="send-horizontal"></i></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen hidden" id="briefScreen" aria-labelledby="briefTitle">
+          <div class="section-title">
+            <div>
+              <h1 id="briefTitle">ТЗ-помощник</h1>
+              <p>Превращает “мне надо это” в чёткую задачу</p>
+            </div>
+          </div>
+          <div class="wizard-steps" id="wizardSteps"></div>
+          <div class="panel" style="margin-top:12px">
+            <div class="panel-head">
+              <h2>Итог для рассылки</h2>
+              <span class="badge">готово</span>
+            </div>
+            <div class="brief" id="finalBrief"></div>
+            <button class="btn primary full" id="useBriefButton" type="button" style="margin-top:12px"><i data-lucide="clipboard-check"></i>Вернуться к заявке</button>
+          </div>
+        </section>
+
+        <section class="screen hidden" id="chatListScreen" aria-labelledby="chatListTitle">
+          <div class="section-title">
+            <div>
+              <h1 id="chatListTitle">Чаты</h1>
+              <p>Быстрые переговоры без языкового барьера</p>
+            </div>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </section>
+      </main>
+
+      <button class="btn primary fab" id="fabButton" type="button"><i data-lucide="plus"></i>Заявка</button>
+
+      <nav class="tabbar" aria-label="Главная навигация">
+        <button class="tab active" type="button" data-screen="feed"><i data-lucide="home"></i><span>Лента</span></button>
+        <button class="tab" type="button" data-screen="request"><i data-lucide="circle-plus"></i><span>Заявка</span></button>
+        <button class="tab" type="button" data-screen="offers"><i data-lucide="shopping-bag"></i><span>Отклики</span><span class="dot">3</span></button>
+        <button class="tab" type="button" data-screen="chatList"><i data-lucide="message-circle"></i><span>Чаты</span><span class="dot">2</span></button>
+      </nav>
+
+      <div class="sheet-backdrop" id="sheetBackdrop"></div>
+      <aside class="sheet" id="roleSheet" aria-label="Настройки роли">
+        <div class="panel-head">
+          <div>
+            <h2>Режим приложения</h2>
+            <p>Можно смотреть сервис глазами обеих сторон</p>
+          </div>
+          <button class="icon-btn" type="button" id="closeSheet" aria-label="Закрыть"><i data-lucide="x"></i></button>
+        </div>
+        <div class="role-toggle">
+          <button id="sheetCustomer" class="active" type="button">Ищу помощь</button>
+          <button id="sheetContractor" type="button">Ищу работу</button>
+        </div>
+        <button class="btn dark full" id="applyRole" type="button" style="margin-top:12px"><i data-lucide="check"></i>Готово</button>
+      </aside>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"><i data-lucide="check-circle"></i><span id="toastText">Готово</span></div>
+    </div>
+
+    <aside class="desktop-note">
+      <strong>Mobile-first прототип</strong>
+      <p>На широком экране оставил телефонную рамку специально: целевой UX здесь мобильный, с bottom nav, крупными touch targets, sticky CTA, чатами и карточками откликов в стиле marketplace + messenger + checkout.</p>
+    </aside>
+  </div>
+
+  <script>
+    const state = {
+      role: "customer",
+      screen: "feed",
+      selectedCategory: "moving",
+      selectedJob: 1,
+      selectedOffer: 1,
+      translation: true,
+      jobs: [
+        {
+          id: 1,
+          category: "moving",
+          title: "Переезд: коробки и стол",
+          location: "Сабуртало",
+          time: "завтра 14:00-17:00",
+          budget: "до 120 GEL",
+          urgency: "срочно",
+          distance: "1.4 км",
+          replies: 3,
+          image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=360&q=78",
+          text: "8 коробок и небольшой стол, есть лифт, нужна машина и помощь с погрузкой."
+        },
+        {
+          id: 2,
+          category: "handyman",
+          title: "Полка + дверца шкафа",
+          location: "Ваке",
+          time: "сегодня вечером",
+          budget: "80-100 GEL",
+          urgency: "быстро",
+          distance: "3.2 км",
+          replies: 5,
+          image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=360&q=78",
+          text: "Повесить одну полку, подтянуть дверцу, мастер со своей дрелью."
+        },
+        {
+          id: 3,
+          category: "dogwalk",
+          title: "Выгул собаки 40 минут",
+          location: "Чугурети",
+          time: "будни утром",
+          budget: "25 GEL",
+          urgency: "регулярно",
+          distance: "2.1 км",
+          replies: 4,
+          image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=360&q=78",
+          text: "Спокойная собака, маршрут рядом с домом, нужен отчёт фото."
+        }
+      ],
+      offers: [
+        { id: 1, jobId: 1, name: "Giorgi", initials: "GI", lang: "KA", price: "100 GEL", eta: "15:00", rating: 4.9, jobs: 124, verified: true, text: "Могу приехать завтра к 15:00. Машина есть, ремни и одеяло для стола возьму." },
+        { id: 2, jobId: 1, name: "Marta", initials: "MA", lang: "EN", price: "115 GEL", eta: "14:30", rating: 4.8, jobs: 82, verified: true, text: "I can come with a van. Price includes loading and unloading." },
+        { id: 3, jobId: 1, name: "Luis", initials: "LU", lang: "ES", price: "95 GEL", eta: "16:00", rating: 4.7, jobs: 61, verified: false, text: "Puedo ayudar con cajas y mesa, necesito foto de entrada." }
+      ],
+      messages: [
+        { mine: false, text: "გამარჯობა, ხვალ 15:00-ზე მოვალ მანქანით.", translated: "Здравствуйте, завтра в 15:00 приеду с машиной." },
+        { mine: true, text: "Отлично. Стол небольшой, но лучше взять ремни.", translated: "Great. The table is small, but please bring straps." },
+        { mine: false, text: "კი, ღვედებს წამოვიღებ. მისამართი მომწერეთ.", translated: "Да, возьму ремни. Напишите адрес." }
+      ]
+    };
+
+    const categories = [
+      { id: "moving", label: "Переезд", icon: "truck" },
+      { id: "handyman", label: "Мастер", icon: "wrench" },
+      { id: "childcare", label: "Няня", icon: "baby" },
+      { id: "dogwalk", label: "Собаки", icon: "dog" },
+      { id: "cleaning", label: "Уборка", icon: "sparkles" }
+    ];
+
+    const wizard = [
+      ["Что сделать", "Конкретный результат: перевезти, починить, погулять, присмотреть."],
+      ["Условия на месте", "Этаж, лифт, парковка, инструменты, животные, дети дома."],
+      ["Время и бюджет", "Окно времени, максимальная сумма, способ оплаты."],
+      ["Как принять работу", "Фото, проверка результата, подтверждение в чате."]
+    ];
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+    function job() {
+      return state.jobs.find((item) => item.id === state.selectedJob) || state.jobs[0];
+    }
+
+    function offer() {
+      return state.offers.find((item) => item.id === state.selectedOffer) || state.offers[0];
+    }
+
+    function showToast(text) {
+      $("#toastText").textContent = text;
+      $("#toast").classList.add("show");
+      setTimeout(() => $("#toast").classList.remove("show"), 2200);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function setScreen(screen) {
+      state.screen = screen;
+      render();
+      history.replaceState(null, "", `#${screen}`);
+    }
+
+    function currentBrief() {
+      return `Задача: ${$("#jobCategory")?.selectedOptions[0]?.textContent || "Помощь с переездом"}. ${$("#jobText")?.value || job().text} Район: ${$("#jobLocation")?.value || job().location}. Когда: ${$("#jobTime")?.value || job().time}. Бюджет: ${$("#jobBudget")?.value || job().budget}. Нужны точная цена, срок, язык общения и что исполнитель привезёт с собой.`;
+    }
+
+    function updateBrief() {
+      const fields = ["jobText", "jobLocation", "jobTime", "jobBudget"].map((id) => $(`#${id}`)?.value.trim()).filter(Boolean);
+      const textLength = $("#jobText")?.value.length || 0;
+      const score = Math.min(96, 42 + fields.length * 11 + (textLength > 95 ? 10 : 0));
+      $("#briefScore").textContent = `ТЗ ${score}%`;
+      $("#progressBar").style.width = `${score}%`;
+      $("#briefText").textContent = currentBrief();
+      $("#finalBrief").textContent = currentBrief();
+    }
+
+    function renderCategories() {
+      $("#categories").innerHTML = categories.map((item) => `
+        <button class="category ${state.selectedCategory === item.id ? "active" : ""}" type="button" data-category="${item.id}" aria-label="${item.label}">
+          <span class="category-icon"><i data-lucide="${item.icon}"></i></span>
+          <span>${item.label}</span>
+        </button>
+      `).join("");
+      $$("[data-category]").forEach((button) => button.addEventListener("click", () => {
+        state.selectedCategory = button.dataset.category;
+        render();
+      }));
+    }
+
+    function renderJobs() {
+      const filtered = state.jobs.filter((item) => item.category === state.selectedCategory || state.selectedCategory === "moving");
+      const list = filtered.length ? filtered : state.jobs;
+      $("#jobCards").innerHTML = list.map((item) => `
+        <button class="job-card" type="button" data-job="${item.id}">
+          <span class="job-art"><img src="${item.image}" alt="${item.title}" loading="lazy"></span>
+          <span class="job-main">
+            <span class="job-top">
+              <span>
+                <span class="badge"><i data-lucide="zap"></i>${item.urgency}</span>
+                <h3 style="margin-top:7px">${item.title}</h3>
+              </span>
+              <span class="price">${item.budget}</span>
+            </span>
+            <span class="meta"><span>${item.location}</span><span>${item.distance}</span><span>${item.time}</span></span>
+            <span class="offer-text">${item.text}</span>
+            <span class="mini-actions"><span class="chip"><i data-lucide="message-circle"></i>${item.replies} отклика</span><span class="chip"><i data-lucide="languages"></i>auto RU</span></span>
+          </span>
+        </button>
+      `).join("");
+      $$("[data-job]").forEach((button) => button.addEventListener("click", () => {
+        state.selectedJob = Number(button.dataset.job);
+        setScreen(state.role === "contractor" ? "request" : "offers");
+      }));
+    }
+
+    function renderOffers() {
+      const list = state.offers.filter((item) => item.jobId === state.selectedJob);
+      $("#offerSubtitle").textContent = `${list.length} исполнителя готовы взяться`;
+      $("#offerCards").innerHTML = list.map((item) => `
+        <article class="offer-card ${state.selectedOffer === item.id ? "chosen" : ""}">
+          <div class="person">
+            <div class="avatar">${item.initials}</div>
+            <div>
+              <h3>${item.name}</h3>
+              <div class="meta"><span class="rating"><i data-lucide="star"></i>${item.rating}</span><span>${item.jobs} работ</span><span>${item.lang}</span></div>
+            </div>
+            ${item.verified ? '<span class="badge"><i data-lucide="shield-check"></i>OK</span>' : '<span class="chip">новый</span>'}
+          </div>
+          <div class="offer-text">${item.text}</div>
+          <div class="mini-actions">
+            <span class="price">${item.price}</span>
+            <span class="chip"><i data-lucide="clock"></i>${item.eta}</span>
+          </div>
+          <div class="mini-actions">
+            <button class="btn small ${state.selectedOffer === item.id ? "green" : "dark"}" type="button" data-choose="${item.id}"><i data-lucide="check"></i>${state.selectedOffer === item.id ? "Выбран" : "Выбрать"}</button>
+            <button class="btn small" type="button" data-chat="${item.id}"><i data-lucide="message-circle"></i>Чат</button>
+          </div>
+        </article>
+      `).join("");
+      $$("[data-choose]").forEach((button) => button.addEventListener("click", () => {
+        state.selectedOffer = Number(button.dataset.choose);
+        showToast("Исполнитель выбран");
+        renderOffers();
+      }));
+      $$("[data-chat]").forEach((button) => button.addEventListener("click", () => {
+        state.selectedOffer = Number(button.dataset.chat);
+        setScreen("chat");
+      }));
+    }
+
+    function renderMessages() {
+      const selected = offer();
+      $("#chatTitle").textContent = selected.name;
+      $(".chat-head p").textContent = `${selected.lang} ⇄ RU · автоперевод ${state.translation ? "включён" : "выключен"}`;
+      $("#messages").innerHTML = state.messages.map((message) => `
+        <div class="msg ${message.mine ? "me" : ""}">
+          ${message.text}
+          ${state.translation ? `<div class="translated">${message.translated} · mock translate</div>` : ""}
+        </div>
+      `).join("");
+    }
+
+    function renderChatList() {
+      $("#chatList").innerHTML = state.offers.map((item, index) => `
+        <button class="chat-item" type="button" data-open-chat="${item.id}">
+          <span class="avatar">${item.initials}</span>
+          <span>
+            <h3>${item.name}</h3>
+            <small>${index === 0 ? "Ждёт адрес и фото входа" : "Предложил цену " + item.price}</small>
+          </span>
+          <span class="unread">${index + 1}</span>
+        </button>
+      `).join("");
+      $$("[data-open-chat]").forEach((button) => button.addEventListener("click", () => {
+        state.selectedOffer = Number(button.dataset.openChat);
+        setScreen("chat");
+      }));
+    }
+
+    function renderWizard() {
+      $("#wizardSteps").innerHTML = wizard.map(([title, text], index) => `
+        <div class="step">
+          <span class="step-num">${index + 1}</span>
+          <span><h3>${title}</h3><p>${text}</p></span>
+        </div>
+      `).join("");
+    }
+
+    function renderRole() {
+      const contractor = state.role === "contractor";
+      $("#feedTitle").textContent = contractor ? "Заявки рядом" : "Что нужно сделать?";
+      $("#jobsHeading").textContent = contractor ? "Подходящие работы" : "Свежие заявки рядом";
+      $("#fabButton").innerHTML = contractor ? '<i data-lucide="send"></i>Отклик' : '<i data-lucide="plus"></i>Заявка';
+      $("#customerRole").classList.toggle("active", !contractor);
+      $("#contractorRole").classList.toggle("active", contractor);
+      $("#sheetCustomer").classList.toggle("active", !contractor);
+      $("#sheetContractor").classList.toggle("active", contractor);
+    }
+
+    function renderScreens() {
+      const map = { feed: "feedScreen", request: "requestScreen", offers: "offersScreen", chat: "chatScreen", chatList: "chatListScreen", brief: "briefScreen" };
+      Object.entries(map).forEach(([screen, id]) => $(`#${id}`).classList.toggle("hidden", state.screen !== screen));
+      $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.screen === state.screen));
+      $("#fabButton").style.display = ["feed", "offers", "chatList"].includes(state.screen) ? "inline-flex" : "none";
+      $("#searchShell").style.display = state.screen === "feed" ? "grid" : "none";
+    }
+
+    function render() {
+      renderScreens();
+      renderRole();
+      renderCategories();
+      renderJobs();
+      renderOffers();
+      renderMessages();
+      renderChatList();
+      renderWizard();
+      updateBrief();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    $$(".tab").forEach((tab) => tab.addEventListener("click", () => setScreen(tab.dataset.screen)));
+    $("#fabButton").addEventListener("click", () => setScreen(state.role === "contractor" ? "offers" : "request"));
+    $("#filterButton").addEventListener("click", () => showToast("Фильтры: район, цена, язык, рейтинг"));
+    $("#sortButton").addEventListener("click", () => showToast("Сортировка обновлена"));
+    $("#roleButton").addEventListener("click", () => {
+      $("#roleSheet").classList.add("open");
+      $("#sheetBackdrop").classList.add("open");
+    });
+    $("#closeSheet").addEventListener("click", closeSheet);
+    $("#sheetBackdrop").addEventListener("click", closeSheet);
+    function closeSheet() {
+      $("#roleSheet").classList.remove("open");
+      $("#sheetBackdrop").classList.remove("open");
+    }
+
+    $("#customerRole").addEventListener("click", () => { state.role = "customer"; render(); });
+    $("#contractorRole").addEventListener("click", () => { state.role = "contractor"; render(); });
+    $("#sheetCustomer").addEventListener("click", () => { state.role = "customer"; renderRole(); });
+    $("#sheetContractor").addEventListener("click", () => { state.role = "contractor"; renderRole(); });
+    $("#applyRole").addEventListener("click", () => { closeSheet(); render(); showToast(state.role === "contractor" ? "Режим исполнителя" : "Режим заказчика"); });
+
+    ["jobText", "jobLocation", "jobTime", "jobBudget", "jobCategory"].forEach((id) => $(`#${id}`).addEventListener("input", updateBrief));
+    $("#improveButton").addEventListener("click", () => setScreen("brief"));
+    $("#useBriefButton").addEventListener("click", () => setScreen("request"));
+    $("#publishButton").addEventListener("click", () => {
+      showToast("Заявка опубликована: исполнители получат перевод");
+      setScreen("offers");
+    });
+    $("#addOfferButton").addEventListener("click", () => {
+      const id = Math.max(...state.offers.map((item) => item.id)) + 1;
+      state.offers.unshift({ id, jobId: state.selectedJob, name: "Nino", initials: "NI", lang: "KA", price: "90 GEL", eta: "14:45", rating: 4.8, jobs: 47, verified: true, text: "Готова помочь, уточню детали по фото и приеду в выбранное окно." });
+      state.selectedOffer = id;
+      render();
+      showToast("Новый отклик получен");
+    });
+    $("#chatBackButton").addEventListener("click", () => setScreen("chatList"));
+    $("#translateButton").addEventListener("click", () => { state.translation = !state.translation; renderMessages(); if (window.lucide) lucide.createIcons(); });
+    $("#sendMessage").addEventListener("click", () => {
+      const input = $("#messageInput");
+      const text = input.value.trim();
+      if (!text) return;
+      state.messages.push({ mine: true, text, translated: "Auto-translated for contractor language." });
+      input.value = "";
+      renderMessages();
+      showToast("Сообщение отправлено с переводом");
+    });
+
+    render();
+  </script>
+</body>
+</html>

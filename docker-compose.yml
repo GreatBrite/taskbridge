@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: taskbridge
+      POSTGRES_USER: taskbridge
+      POSTGRES_PASSWORD: taskbridge_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskbridge -d taskbridge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://taskbridge:taskbridge_dev_password@postgres:5432/taskbridge
+      REDIS_URL: redis://redis:6379/0
+      MINI_APP_URL: ${MINI_APP_URL:-https://taskbridge.zavozikkvn.ru/}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      DEEPL_API_KEY: ${DEEPL_API_KEY:-}
+      DEFAULT_CITY: ${DEFAULT_CITY:-Tbilisi}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-GEL}
+      DEV_AUTH_ENABLED: ${DEV_AUTH_ENABLED:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8012:8000"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      MINI_APP_URL: ${MINI_APP_URL:-https://taskbridge.zavozikkvn.ru/}
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_started
+    profiles: ["bot"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8013:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:
