@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: taskbridge
       POSTGRES_USER: taskbridge
@@ -15,6 +16,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -25,6 +27,7 @@ services:
       retries: 5
 
   backend:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -46,6 +49,7 @@ services:
       - "8012:8000"
 
   bot:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile.bot
@@ -59,6 +63,7 @@ services:
     profiles: ["bot"]
 
   frontend:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile.frontend
